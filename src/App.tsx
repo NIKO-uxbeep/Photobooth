@@ -121,10 +121,22 @@ export default function App() {
 
   useEffect(() => {
     if (mode !== 'result' || !stripUrl || !window.matchMedia('(max-width: 700px)').matches) return;
-    stripPanelRef.current?.scrollIntoView({
-      behavior: 'auto',
-      block: 'start',
-    });
+    const panel = stripPanelRef.current;
+    if (!panel) return;
+    const scrollToResult = () => {
+      const top = panel.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: Math.max(0, top - 12), behavior: 'auto' });
+    };
+    const image = panel.querySelector<HTMLImageElement>('.strip-result');
+    if (image && !image.complete) {
+      image.addEventListener('load', scrollToResult, { once: true });
+      image.addEventListener('error', scrollToResult, { once: true });
+      return () => {
+        image.removeEventListener('load', scrollToResult);
+        image.removeEventListener('error', scrollToResult);
+      };
+    }
+    scrollToResult();
   }, [mode, stripUrl]);
 
   useEffect(

@@ -4,12 +4,8 @@ export type CapturedPhoto = {
 };
 
 const PHOTO_SIZE = 1200;
-const FRAME = 132;
-const GAP = 42;
-const HEADER = 210;
-const FOOTER = 320;
-const STRIP_WIDTH = PHOTO_SIZE + FRAME * 2;
-const STRIP_HEIGHT = HEADER + PHOTO_SIZE * 3 + GAP * 2 + FOOTER;
+const STRIP_WIDTH = 1800;
+const STRIP_HEIGHT = 2700;
 
 function drawHolly(context: CanvasRenderingContext2D, x: number, y: number, scale = 1, flip = 1, rotation = 0) {
   context.save();
@@ -156,84 +152,160 @@ function drawChristmasFrame(context: CanvasRenderingContext2D) {
 
   context.save();
   context.beginPath();
-  context.rect(8, 0, 28, STRIP_HEIGHT);
-  context.rect(STRIP_WIDTH - 36, 0, 28, STRIP_HEIGHT);
+  context.rect(22, 0, 46, STRIP_HEIGHT);
+  context.rect(STRIP_WIDTH - 68, 0, 46, STRIP_HEIGHT);
   context.clip();
-  for (let y = -52; y < STRIP_HEIGHT + 72; y += 104) {
+  for (let y = -70; y < STRIP_HEIGHT + 90; y += 116) {
     context.beginPath();
-    context.moveTo(8, y);
-    context.lineTo(36, y + 28);
-    context.lineTo(36, y + 68);
-    context.lineTo(8, y + 40);
+    context.moveTo(22, y);
+    context.lineTo(68, y + 42);
+    context.lineTo(68, y + 80);
+    context.lineTo(22, y + 38);
     context.closePath();
     context.fillStyle = '#f3e7d0';
     context.fill();
     context.beginPath();
-    context.moveTo(STRIP_WIDTH - 36, y + 28);
-    context.lineTo(STRIP_WIDTH - 8, y);
-    context.lineTo(STRIP_WIDTH - 8, y + 40);
-    context.lineTo(STRIP_WIDTH - 36, y + 68);
+    context.moveTo(STRIP_WIDTH - 68, y + 42);
+    context.lineTo(STRIP_WIDTH - 22, y);
+    context.lineTo(STRIP_WIDTH - 22, y + 38);
+    context.lineTo(STRIP_WIDTH - 68, y + 80);
     context.closePath();
     context.fillStyle = '#f3e7d0';
     context.fill();
   }
   context.restore();
 
-  context.fillStyle = '#fffdf5';
-  context.fillRect(FRAME - 16, HEADER - 14, PHOTO_SIZE + 32, STRIP_HEIGHT - HEADER - FOOTER + 28);
+  context.fillStyle = '#fff3de';
+  context.fillRect(92, 286, STRIP_WIDTH - 184, 2060);
   context.strokeStyle = '#26553d';
-  context.lineWidth = 6;
+  context.lineWidth = 8;
   context.strokeRect(13, 13, STRIP_WIDTH - 26, STRIP_HEIGHT - 26);
   context.strokeStyle = '#d7bd7d';
   context.lineWidth = 3;
-  context.strokeRect(28, 28, STRIP_WIDTH - 56, STRIP_HEIGHT - 56);
+  context.strokeRect(34, 34, STRIP_WIDTH - 68, STRIP_HEIGHT - 68);
 
   context.textAlign = 'center';
   context.fillStyle = '#fff3d4';
-  context.font = '700 34px "DM Sans", sans-serif';
-  context.fillText('KERSTEDITIE 2026', STRIP_WIDTH / 2, 63);
-  drawBell(context, 148, 105);
-  drawBell(context, STRIP_WIDTH - 148, 105, -1);
+  context.font = '700 42px "DM Sans", sans-serif';
+  context.fillText('KERSTEDITIE 2026', STRIP_WIDTH / 2, 92);
+  drawBell(context, 178, 135);
+  drawBell(context, STRIP_WIDTH - 178, 135, -1);
 
   context.beginPath();
-  context.moveTo(215, 143);
-  context.quadraticCurveTo(STRIP_WIDTH / 2, 162, STRIP_WIDTH - 215, 143);
+  context.moveTo(300, 204);
+  context.quadraticCurveTo(STRIP_WIDTH / 2, 222, STRIP_WIDTH - 300, 204);
   context.strokeStyle = '#e9c977';
   context.lineWidth = 2;
   context.stroke();
   for (let bulb = 0; bulb < 13; bulb += 1) {
-    const x = 232 + bulb * ((STRIP_WIDTH - 464) / 12);
+    const x = 320 + bulb * ((STRIP_WIDTH - 640) / 12);
     const curve = (x - STRIP_WIDTH / 2) / (STRIP_WIDTH / 2);
-    const y = 143 + (1 - curve * curve) * 8;
+    const y = 204 + (1 - curve * curve) * 8;
     context.beginPath();
-    context.arc(x, y + 4, 9, 0, Math.PI * 2);
+    context.arc(x, y + 4, 11, 0, Math.PI * 2);
     context.fillStyle = ['#d7ad55', '#bd493a', '#597e54'][bulb % 3];
     context.fill();
   }
 
-  drawHolly(context, 74, 80, 1.7);
-  drawHolly(context, STRIP_WIDTH - 74, 80, 1.7, -1);
-  drawHolly(context, 74, STRIP_HEIGHT - 45, 1.7, 1, -0.9);
-  drawHolly(context, STRIP_WIDTH - 74, STRIP_HEIGHT - 45, 1.7, -1, 0.9);
+  drawHolly(context, 88, 98, 2.1);
+  drawHolly(context, STRIP_WIDTH - 88, 98, 2.1, -1);
+  drawHolly(context, 88, STRIP_HEIGHT - 66, 2.1, 1, -0.9);
+  drawHolly(context, STRIP_WIDTH - 88, STRIP_HEIGHT - 66, 2.1, -1, 0.9);
 
   const baubles: [number, number, number, string][] = [
-    [61, HEADER + 290, 19, '#d64b38'],
-    [STRIP_WIDTH - 61, HEADER + 760, 17, '#e1ba5f'],
-    [61, HEADER + 1530, 16, '#e1ba5f'],
-    [STRIP_WIDTH - 61, HEADER + 1900, 20, '#d64b38'],
-    [61, STRIP_HEIGHT - FOOTER - 520, 17, '#d64b38'],
-    [STRIP_WIDTH - 61, STRIP_HEIGHT - FOOTER - 190, 18, '#e1ba5f'],
+    [61, 520, 27, '#d64b38'],
+    [STRIP_WIDTH - 61, 680, 24, '#e1ba5f'],
+    [61, 1080, 23, '#e1ba5f'],
+    [STRIP_WIDTH - 61, 1420, 28, '#d64b38'],
+    [61, 1790, 25, '#d64b38'],
+    [STRIP_WIDTH - 61, 2050, 27, '#e1ba5f'],
   ];
   for (const [x, y, radius, color] of baubles) {
     drawBauble(context, x, y, radius, color);
   }
 
-  for (let y = HEADER + 450, row = 0; y < STRIP_HEIGHT - FOOTER + 50; y += 430, row += 1) {
+  for (let y = 470, row = 0; y < 2300; y += 300, row += 1) {
     const side = row % 2 === 0 ? 1 : -1;
     for (const x of [61, STRIP_WIDTH - 61]) {
-      drawSnowflake(context, x + side * 25, y + 145, 18);
+      drawSnowflake(context, x + side * 30, y + 145, 22);
     }
   }
+
+  context.fillStyle = '#aa302b';
+  context.fillRect(70, 2380, STRIP_WIDTH - 140, 250);
+  context.strokeStyle = '#e6c576';
+  context.lineWidth = 3;
+  context.beginPath();
+  context.moveTo(170, 2398);
+  context.lineTo(STRIP_WIDTH - 170, 2398);
+  context.stroke();
+}
+
+function drawCoverPhoto(context: CanvasRenderingContext2D, bitmap: ImageBitmap, x: number, y: number, width: number, height: number) {
+  const sourceAspect = bitmap.width / bitmap.height;
+  const targetAspect = width / height;
+  let sourceX = 0;
+  let sourceY = 0;
+  let sourceWidth = bitmap.width;
+  let sourceHeight = bitmap.height;
+
+  if (sourceAspect > targetAspect) {
+    sourceWidth = bitmap.height * targetAspect;
+    sourceX = (bitmap.width - sourceWidth) / 2;
+  } else {
+    sourceHeight = bitmap.width / targetAspect;
+    sourceY = (bitmap.height - sourceHeight) / 2;
+  }
+
+  context.drawImage(bitmap, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
+}
+
+function drawPhotoCard(
+  context: CanvasRenderingContext2D,
+  bitmap: ImageBitmap,
+  centerX: number,
+  centerY: number,
+  width: number,
+  height: number,
+  caption: string,
+  rotation: number,
+  hero = false,
+) {
+  context.save();
+  context.translate(centerX, centerY);
+  context.rotate(rotation);
+  context.shadowColor = 'rgba(43, 26, 18, .35)';
+  context.shadowBlur = hero ? 28 : 23;
+  context.shadowOffsetY = hero ? 17 : 14;
+  context.fillStyle = '#fffdf6';
+  context.fillRect(-width / 2, -height / 2, width, height);
+  context.shadowColor = 'transparent';
+
+  const padding = hero ? 28 : 24;
+  const captionHeight = hero ? 132 : 108;
+  const photoX = -width / 2 + padding;
+  const photoY = -height / 2 + padding;
+  const photoWidth = width - padding * 2;
+  const photoHeight = height - padding * 2 - captionHeight;
+  drawCoverPhoto(context, bitmap, photoX, photoY, photoWidth, photoHeight);
+
+  context.strokeStyle = '#d8c99e';
+  context.lineWidth = 3;
+  context.strokeRect(photoX, photoY, photoWidth, photoHeight);
+  context.fillStyle = '#244e39';
+  context.textAlign = 'left';
+  context.textBaseline = 'middle';
+  context.font = hero ? '700 39px Fraunces, Georgia, serif' : '700 30px Fraunces, Georgia, serif';
+  context.fillText(caption, photoX + 8, height / 2 - captionHeight / 2);
+
+  const stampX = width / 2 - padding - (hero ? 24 : 20);
+  const stampY = height / 2 - captionHeight / 2;
+  context.beginPath();
+  context.arc(stampX, stampY, hero ? 16 : 13, 0, Math.PI * 2);
+  context.fillStyle = '#bd493a';
+  context.fill();
+  drawSnowflake(context, stampX, stampY, hero ? 9 : 7);
+  context.restore();
 }
 
 export async function capturePhoto(video: HTMLVideoElement): Promise<Blob> {
@@ -271,28 +343,23 @@ export async function createStrip(photos: CapturedPhoto[]): Promise<Blob> {
     throw new Error('De fotostrip kon niet worden gemaakt.');
   }
 
-  context.fillStyle = '#fffdf5';
+  context.fillStyle = '#fff3de';
   context.fillRect(0, 0, STRIP_WIDTH, STRIP_HEIGHT);
   drawChristmasFrame(context);
-  bitmaps.forEach((bitmap, index) => {
-    const y = HEADER + index * (PHOTO_SIZE + GAP);
-    context.drawImage(bitmap, FRAME, y, PHOTO_SIZE, PHOTO_SIZE);
-    bitmap.close();
-  });
+  drawPhotoCard(context, bitmaps[0], 900, 960, 1370, 1190, 'MOMENT 01 · KERST', 0, true);
+  drawPhotoCard(context, bitmaps[1], 505, 1950, 640, 760, 'MOMENT 02', -0.045);
+  drawPhotoCard(context, bitmaps[2], 1295, 1950, 640, 760, 'MOMENT 03', 0.045);
+  bitmaps.forEach((bitmap) => bitmap.close());
 
   await document.fonts.ready;
-  context.fillStyle = '#204a3d';
-  context.textAlign = 'left';
-  context.font = 'italic 700 54px Fraunces, Georgia, serif';
-  context.fillText('KERSTMOMENTEN', FRAME + 36, STRIP_HEIGHT - 126);
-  context.textAlign = 'right';
-  context.fillStyle = '#a64035';
-  context.font = '700 29px "DM Sans", sans-serif';
-  context.fillText('FIJNE FEESTDAGEN', STRIP_WIDTH - FRAME - 36, STRIP_HEIGHT - 126);
   context.textAlign = 'center';
-  context.fillStyle = '#54714d';
-  context.font = '600 23px Fraunces, Georgia, serif';
-  context.fillText('Een kerst om te bewaren', STRIP_WIDTH / 2, STRIP_HEIGHT - 71);
+  context.textBaseline = 'middle';
+  context.fillStyle = '#fff2d6';
+  context.font = 'italic 700 54px Fraunces, Georgia, serif';
+  context.fillText('KERSTMOMENTEN', STRIP_WIDTH / 2, 2485);
+  context.fillStyle = '#f3dfae';
+  context.font = '600 27px Fraunces, Georgia, serif';
+  context.fillText('Een kerst om te bewaren', STRIP_WIDTH / 2, 2562);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
