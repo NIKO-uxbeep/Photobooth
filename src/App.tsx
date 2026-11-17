@@ -88,13 +88,10 @@ export default function App() {
 
   useEffect(() => {
     if (mode !== 'result' || !stripUrl || !window.matchMedia('(max-width: 700px)').matches) return;
-    const frame = window.requestAnimationFrame(() => {
-      stripPanelRef.current?.scrollIntoView({
-        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-        block: 'start',
-      });
+    stripPanelRef.current?.scrollIntoView({
+      behavior: 'auto',
+      block: 'start',
     });
-    return () => window.cancelAnimationFrame(frame);
   }, [mode, stripUrl]);
 
   useEffect(
@@ -295,7 +292,7 @@ export default function App() {
         <p className="intro-note">Een nacht vol kleine wonderen, vastgelegd in jouw eigen kerststrip.</p>
       </div>
 
-      <div className="workspace">
+      <div className={`workspace ${mode === 'result' ? 'workspace-result' : 'workspace-ready'}`}>
         <section className="shoot-panel" aria-labelledby="shoot-title">
           <div className="section-topline">
             <div>
@@ -305,7 +302,7 @@ export default function App() {
             <span className="shot-count">{String(photoCount).padStart(2, '0')} <span>/ 03</span></span>
           </div>
 
-          <div className={`viewfinder ${mode === 'camera' ? 'viewfinder-live' : ''}`}>
+          <div className={`viewfinder ${mode === 'camera' ? 'viewfinder-live' : ''} ${mode === 'ready' ? 'viewfinder-ready' : ''}`}>
             {mode === 'camera' ? (
               <video
                 ref={videoRef}
@@ -377,6 +374,7 @@ export default function App() {
           )}
         </section>
 
+        {mode === 'result' && photoCount === 3 && (
         <section className="strip-panel" aria-labelledby="strip-title" ref={stripPanelRef}>
           <div className="section-topline strip-heading">
             <div>
@@ -420,6 +418,7 @@ export default function App() {
             <div className="strip-note"><ImagePlus size={16} /><span>Drie beelden. Een kerst om te bewaren.</span></div>
           )}
         </section>
+        )}
       </div>
 
       <footer className="footer-note">
