@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import {
   Aperture,
   ArrowDownToLine,
@@ -8,9 +8,12 @@ import {
   RotateCcw,
   Share2,
   ShieldCheck,
+  Sparkles,
   X,
 } from 'lucide-react';
 import { capturePhoto, createStrip, type CapturedPhoto } from './lib/createStrip';
+
+const WinterScene = lazy(() => import('./WinterScene'));
 
 type Mode = 'ready' | 'camera' | 'result';
 type BrowserWithShare = Navigator & {
@@ -267,28 +270,36 @@ export default function App() {
   }
 
   return (
-    <main className="app-shell">
+    <>
+      <Suspense fallback={<div className="winter-world winter-world-static" aria-hidden="true" />}>
+        <WinterScene />
+      </Suspense>
+      <div className="winter-wash" aria-hidden="true" />
+      <main className="app-shell">
       <header className="topbar">
         <a className="brand" href="/" aria-label="Polaroid App startpagina">
           <span className="brand-mark"><Aperture size={22} strokeWidth={2.2} /></span>
           <span>POLAROID APP</span>
         </a>
-        <div className="privacy-tag"><ShieldCheck size={16} /> Alleen op jouw apparaat</div>
+        <div className="topbar-right">
+          <span className="edition-tag"><Sparkles size={14} /> KERSTSTUDIO</span>
+          <div className="privacy-tag"><ShieldCheck size={16} /> Alleen op jouw apparaat</div>
+        </div>
       </header>
 
       <div className="intro-row">
         <div>
-          <p className="eyebrow"><span className="eyebrow-dot" /> DE FOTOSTUDIO IN JE ZAK</p>
-          <h1>Drie keer klik.<br /><span>Eentje voor later.</span></h1>
+          <p className="eyebrow"><span className="eyebrow-dot" /> WINTEREDITIE · 2026</p>
+          <h1>Vang de kerst.<br /><span>Hou 'm dichtbij.</span></h1>
         </div>
-        <p className="intro-note">Kleine momenten verdienen een plek buiten je camerarol.</p>
+        <p className="intro-note">Een nacht vol kleine wonderen, vastgelegd in jouw eigen kerststrip.</p>
       </div>
 
       <div className="workspace">
         <section className="shoot-panel" aria-labelledby="shoot-title">
           <div className="section-topline">
             <div>
-              <p className="section-kicker">01 / OPNEMEN</p>
+              <p className="section-kicker">01 / KERSTCAMERA</p>
               <h2 id="shoot-title">Jouw drie momenten</h2>
             </div>
             <span className="shot-count">{String(photoCount).padStart(2, '0')} <span>/ 03</span></span>
@@ -312,7 +323,7 @@ export default function App() {
                 <span className="finder-mark finder-bottom-right" />
                 <span className="placeholder-aperture"><Aperture size={34} strokeWidth={1.5} /></span>
                 <span className="viewfinder-label">
-                  {mode === 'result' ? 'Moment vastgelegd' : 'Je camera opent na je tik'}
+                  {mode === 'result' ? 'Moment vastgelegd' : 'De kerststudio staat klaar'}
                 </span>
               </div>
             )}
@@ -348,12 +359,12 @@ export default function App() {
           <div className="primary-actions">
             {mode === 'ready' && (
               <button className="button button-primary" onClick={() => void startCamera()} disabled={pending}>
-                <Aperture size={19} /> {pending ? 'Camera starten...' : 'Start fotosessie'} <ChevronRight size={18} />
+                <Aperture size={19} /> {pending ? 'Camera starten...' : 'Open de kerstcamera'} <ChevronRight size={18} />
               </button>
             )}
             {mode === 'camera' && (
               <div className="camera-controls">
-                <p className="sequence-message">De drie foto's worden vanzelf gemaakt</p>
+                <p className="sequence-message">De magie is bezig...</p>
                 <button className="button button-quiet" onClick={cancelCamera} aria-label="Fotosessie stoppen" title="Fotosessie stoppen">
                   <X size={20} />
                 </button>
@@ -369,8 +380,8 @@ export default function App() {
         <section className="strip-panel" aria-labelledby="strip-title" ref={stripPanelRef}>
           <div className="section-topline strip-heading">
             <div>
-              <p className="section-kicker">02 / JOUW STRIP</p>
-              <h2 id="strip-title">Zo wordt-ie</h2>
+              <p className="section-kicker">02 / JOUW AANDENKEN</p>
+              <h2 id="strip-title">De kerststrip</h2>
             </div>
             {mode === 'result' && <span className="ready-label"><Check size={14} /> KLAAR</span>}
           </div>
@@ -406,15 +417,16 @@ export default function App() {
               )}
             </div>
           ) : (
-            <div className="strip-note"><ImagePlus size={16} /><span>Drie beelden. Een klein papieren souvenir.</span></div>
+            <div className="strip-note"><ImagePlus size={16} /><span>Drie beelden. Een kerst om te bewaren.</span></div>
           )}
         </section>
       </div>
 
       <footer className="footer-note">
-        <span>Geen uploads. Geen account.</span>
-        <span>Foto's verdwijnen als je deze pagina sluit.</span>
+        <span><ShieldCheck size={14} /> Jouw beelden blijven alleen op dit apparaat.</span>
+        <span>NO. 03 · KERSTSTUDIO</span>
       </footer>
-    </main>
+      </main>
+    </>
   );
 }
