@@ -1,6 +1,6 @@
 # Polaroid App
 
-Een mobiele webapp die drie live camerabeelden lokaal samenstelt tot een PNG-fotostrip. De app heeft geen database, upload-endpoint of account. Opnames blijven alleen in het geheugen van de geopende pagina en verdwijnen wanneer die wordt gesloten of ververst.
+Een mobiele webapp die na het starten de live camera opent, vier seconden aftelt en automatisch drie foto's achter elkaar maakt. Daarna verschijnt direct een lokale PNG-fotostrip. De app heeft geen database, upload-endpoint of account. Opnames blijven alleen in het geheugen van de geopende pagina en verdwijnen wanneer die wordt gesloten of ververst.
 
 ## Lokaal starten
 

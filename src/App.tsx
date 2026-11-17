@@ -8,17 +8,17 @@ import {
   RotateCcw,
   Share2,
   ShieldCheck,
-  Sparkles,
   X,
 } from 'lucide-react';
 import { capturePhoto, createStrip, type CapturedPhoto } from './lib/createStrip';
 
-type Mode = 'ready' | 'camera' | 'review' | 'result';
+type Mode = 'ready' | 'camera' | 'result';
 type BrowserWithShare = Navigator & {
   canShare?: (data?: ShareData) => boolean;
 };
 
 const EMPTY_PHOTOS: (CapturedPhoto | null)[] = [null, null, null];
+const COUNTDOWN_SECONDS = 4;
 
 function getCameraError(error: unknown) {
   if (!(error instanceof DOMException)) return 'De camera kon niet worden gestart. Probeer het nog een keer.';
@@ -39,15 +39,20 @@ export default function App() {
   const [photos, setPhotos] = useState<(CapturedPhoto | null)[]>(EMPTY_PHOTOS);
   const [mode, setMode] = useState<Mode>('ready');
   const [activeSlot, setActiveSlot] = useState(0);
-  const [cameraReady, setCameraReady] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const [flash, setFlash] = useState(false);
   const [pending, setPending] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
   const [stripUrl, setStripUrl] = useState('');
   const [stripBlob, setStripBlob] = useState<Blob | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const stripPanelRef = useRef<HTMLElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const photosRef = useRef<(CapturedPhoto | null)[]>(EMPTY_PHOTOS);
   const stripUrlRef = useRef('');
+  const sequenceIdRef = useRef(0);
+  const sequenceRunningRef = useRef(false);
 
   const photoCount = photos.filter(Boolean).length;
 
@@ -55,7 +60,6 @@ export default function App() {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
-    setCameraReady(false);
   }
 
   function clearStrip() {
@@ -79,8 +83,20 @@ export default function App() {
     void videoRef.current.play().catch(() => setError('De camerabeelden konden niet worden getoond.'));
   }, [mode]);
 
+  useEffect(() => {
+    if (mode !== 'result' || !stripUrl || !window.matchMedia('(max-width: 700px)').matches) return;
+    const frame = window.requestAnimationFrame(() => {
+      stripPanelRef.current?.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        block: 'start',
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [mode, stripUrl]);
+
   useEffect(
     () => () => {
+      sequenceIdRef.current += 1;
       streamRef.current?.getTracks().forEach((track) => track.stop());
       photosRef.current.forEach((photo) => {
         if (photo) URL.revokeObjectURL(photo.url);
@@ -90,10 +106,13 @@ export default function App() {
     [],
   );
 
-  async function startCamera(slot: number) {
+  async function startCamera() {
     setError('');
     clearStrip();
-    setActiveSlot(slot);
+    releasePhotos();
+    setActiveSlot(0);
+    setCountdown(null);
+    setFlash(false);
     if (!window.isSecureContext && location.hostname !== 'localhost') {
       setError('Voor cameratoegang moet deze website via HTTPS geopend zijn.');
       return;
@@ -114,7 +133,6 @@ export default function App() {
         },
       });
       streamRef.current = stream;
-      setCameraReady(false);
       setMode('camera');
     } catch (cameraError) {
       setError(getCameraError(cameraError));
@@ -123,44 +141,76 @@ export default function App() {
     }
   }
 
-  async function takePhoto() {
-    const video = videoRef.current;
-    if (!video || !cameraReady || pending) return;
-    setPending(true);
-    setError('');
-    try {
-      const blob = await capturePhoto(video);
-      const next = [...photosRef.current];
-      const previous = next[activeSlot];
-      if (previous) URL.revokeObjectURL(previous.url);
-      next[activeSlot] = { blob, url: URL.createObjectURL(blob) };
-      photosRef.current = next;
-      setPhotos(next);
+  function beginSequence() {
+    if (sequenceRunningRef.current || !videoRef.current) return;
+    sequenceRunningRef.current = true;
+    const sequenceId = ++sequenceIdRef.current;
+    const isCurrentSequence = () => sequenceIdRef.current === sequenceId;
+    const wait = (milliseconds: number) => new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
 
-      const nextEmptySlot = next.findIndex((photo) => photo === null);
-      if (nextEmptySlot === -1) {
+    void (async () => {
+      setError('');
+      try {
+        for (let slot = 0; slot < 3; slot += 1) {
+          if (!isCurrentSequence()) return;
+          setActiveSlot(slot);
+          for (let seconds = COUNTDOWN_SECONDS; seconds > 0; seconds -= 1) {
+            setCountdown(seconds);
+            await wait(1000);
+            if (!isCurrentSequence()) return;
+          }
+
+          const video = videoRef.current;
+          if (!video) throw new Error('De camera is niet meer beschikbaar.');
+          const blob = await capturePhoto(video);
+          if (!isCurrentSequence()) return;
+
+          const next = [...photosRef.current];
+          next[slot] = { blob, url: URL.createObjectURL(blob) };
+          photosRef.current = next;
+          setPhotos(next);
+          setCountdown(null);
+          setFlash(true);
+          await wait(260);
+          if (!isCurrentSequence()) return;
+          setFlash(false);
+          if (slot < 2) await wait(500);
+        }
+
         stopCamera();
-        setMode('review');
-      } else {
-        setActiveSlot(nextEmptySlot);
+        setMode('result');
+        setCountdown(null);
+        await makeStrip(photosRef.current.filter((photo): photo is CapturedPhoto => photo !== null));
+      } catch (captureError) {
+        if (!isCurrentSequence()) return;
+        stopCamera();
+        releasePhotos();
+        setMode('ready');
+        setError(captureError instanceof Error ? captureError.message : 'De fotosessie is niet gelukt. Probeer het opnieuw.');
+      } finally {
+        if (isCurrentSequence()) {
+          sequenceRunningRef.current = false;
+          setFlash(false);
+          setCountdown(null);
+        }
       }
-    } catch (captureError) {
-      setError(captureError instanceof Error ? captureError.message : 'De foto kon niet worden gemaakt.');
-    } finally {
-      setPending(false);
-    }
+    })();
   }
 
   function cancelCamera() {
+    sequenceIdRef.current += 1;
+    sequenceRunningRef.current = false;
     stopCamera();
+    releasePhotos();
+    setFlash(false);
+    setCountdown(null);
     setError('');
-    setMode(photoCount > 0 ? 'review' : 'ready');
+    setMode('ready');
   }
 
-  async function makeStrip() {
-    const captured = photosRef.current.filter((photo): photo is CapturedPhoto => photo !== null);
+  async function makeStrip(captured = photosRef.current.filter((photo): photo is CapturedPhoto => photo !== null)) {
     if (captured.length !== 3) return;
-    setPending(true);
+    setIsProcessing(true);
     setError('');
     try {
       const blob = await createStrip(captured);
@@ -172,7 +222,7 @@ export default function App() {
     } catch (stripError) {
       setError(stripError instanceof Error ? stripError.message : 'De fotostrip kon niet worden gemaakt.');
     } finally {
-      setPending(false);
+      setIsProcessing(false);
     }
   }
 
@@ -203,12 +253,17 @@ export default function App() {
   }
 
   function newSession() {
+    sequenceIdRef.current += 1;
+    sequenceRunningRef.current = false;
     stopCamera();
     clearStrip();
     releasePhotos();
     setMode('ready');
     setActiveSlot(0);
+    setCountdown(null);
+    setFlash(false);
     setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   return (
@@ -247,7 +302,7 @@ export default function App() {
                 autoPlay
                 muted
                 playsInline
-                onCanPlay={() => setCameraReady(true)}
+                onCanPlay={beginSequence}
               />
             ) : (
               <div className="viewfinder-empty">
@@ -257,11 +312,22 @@ export default function App() {
                 <span className="finder-mark finder-bottom-right" />
                 <span className="placeholder-aperture"><Aperture size={34} strokeWidth={1.5} /></span>
                 <span className="viewfinder-label">
-                  {mode === 'result' ? 'Moment vastgelegd' : mode === 'review' ? 'Drie momenten klaar' : 'Klaar voor jouw moment'}
+                  {mode === 'result' ? 'Moment vastgelegd' : 'Je camera opent na je tik'}
                 </span>
               </div>
             )}
-            {mode === 'camera' && <span className="live-badge"><span /> LIVE</span>}
+            {mode === 'camera' && (
+              <>
+                <span className="live-badge"><span /> LIVE · {activeSlot + 1}/3</span>
+                {countdown !== null && (
+                  <div className="countdown-overlay" aria-live="assertive" aria-atomic="true">
+                    <span className="countdown-number" key={countdown}>{countdown}</span>
+                    <span className="countdown-label">FOTO {activeSlot + 1}</span>
+                  </div>
+                )}
+                {flash && <span className="camera-flash" aria-hidden="true" />}
+              </>
+            )}
           </div>
 
           <div className="capture-meta">
@@ -271,7 +337,9 @@ export default function App() {
               ))}
             </div>
             <span className="capture-hint" aria-live="polite">
-              {mode === 'camera' ? `Foto ${activeSlot + 1} van 3` : mode === 'result' ? 'Je strip is klaar' : `${photoCount} van 3 foto's`}
+              {mode === 'camera'
+                ? countdown !== null ? `Foto ${activeSlot + 1} wordt gemaakt` : 'Camera wordt gestart...'
+                : mode === 'result' ? 'Je strip is klaar' : `${photoCount} van 3 foto's`}
             </span>
           </div>
 
@@ -279,49 +347,26 @@ export default function App() {
 
           <div className="primary-actions">
             {mode === 'ready' && (
-              <button className="button button-primary" onClick={() => void startCamera(0)} disabled={pending}>
-                <Aperture size={19} /> {pending ? 'Camera starten...' : 'Start camera'} <ChevronRight size={18} />
+              <button className="button button-primary" onClick={() => void startCamera()} disabled={pending}>
+                <Aperture size={19} /> {pending ? 'Camera starten...' : 'Start fotosessie'} <ChevronRight size={18} />
               </button>
             )}
             {mode === 'camera' && (
               <div className="camera-controls">
-                <button className="button button-primary" onClick={() => void takePhoto()} disabled={!cameraReady || pending}>
-                  <span className="shutter-icon"><span /></span> {pending ? 'Even wachten...' : 'Maak foto'}
-                </button>
-                <button className="button button-quiet" onClick={cancelCamera} aria-label="Camera sluiten" title="Camera sluiten">
+                <p className="sequence-message">De drie foto's worden vanzelf gemaakt</p>
+                <button className="button button-quiet" onClick={cancelCamera} aria-label="Fotosessie stoppen" title="Fotosessie stoppen">
                   <X size={20} />
                 </button>
               </div>
             )}
-            {mode === 'review' && (
-              <button className="button button-primary" onClick={() => void makeStrip()} disabled={pending}>
-                <Sparkles size={18} /> {pending ? 'Strip maken...' : 'Maak mijn fotostrip'} <ChevronRight size={18} />
-              </button>
-            )}
-            {mode === 'result' && (
-              <button className="button button-primary" onClick={downloadStrip}>
-                <ArrowDownToLine size={18} /> Download fotostrip
-              </button>
-            )}
           </div>
 
-          {mode === 'review' && (
-            <div className="retake-list" aria-label="Gemaakte foto's">
-              {photos.map((photo, slot) => photo && (
-                <button className="retake-button" key={photo.url} onClick={() => void startCamera(slot)}>
-                  <img src={photo.url} alt={`Foto ${slot + 1}`} />
-                  <span>{String(slot + 1).padStart(2, '0')} <RotateCcw size={14} /></span>
-                </button>
-              ))}
-            </div>
-          )}
-
           {mode === 'result' && (
-            <button className="text-action" onClick={newSession}><RotateCcw size={15} /> Nieuwe fotostrip</button>
+            <button className="text-action" onClick={newSession}><RotateCcw size={15} /> Nieuwe fotosessie</button>
           )}
         </section>
 
-        <section className="strip-panel" aria-labelledby="strip-title">
+        <section className="strip-panel" aria-labelledby="strip-title" ref={stripPanelRef}>
           <div className="section-topline strip-heading">
             <div>
               <p className="section-kicker">02 / JOUW STRIP</p>
@@ -346,9 +391,20 @@ export default function App() {
           )}
 
           {mode === 'result' ? (
-            <button className="button button-share" onClick={() => void shareStrip()}>
-              <Share2 size={17} /> Deel met je telefoon
-            </button>
+            <div className="strip-result-actions">
+              <button
+                className="button button-primary"
+                onClick={stripUrl ? downloadStrip : () => void makeStrip()}
+                disabled={isProcessing}
+              >
+                {stripUrl ? <><ArrowDownToLine size={18} /> Download fotostrip</> : isProcessing ? 'Strip maken...' : 'Probeer strip opnieuw'}
+              </button>
+              {stripUrl && (
+                <button className="button button-share" onClick={() => void shareStrip()}>
+                  <Share2 size={17} /> Deel met je telefoon
+                </button>
+              )}
+            </div>
           ) : (
             <div className="strip-note"><ImagePlus size={16} /><span>Drie beelden. Een klein papieren souvenir.</span></div>
           )}
