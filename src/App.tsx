@@ -39,6 +39,38 @@ function getCameraError(error: unknown) {
   return 'De camera kon niet worden gestart. Controleer de camerarechten en probeer opnieuw.';
 }
 
+function ChristmasBear({ side }: { side: 'left' | 'right' }) {
+  const scarfColor = side === 'left' ? '#bd493a' : '#286044';
+  const hatColor = side === 'left' ? '#286044' : '#bd493a';
+
+  return (
+    <svg className={`bear-visitor bear-visitor-${side}`} viewBox="0 0 120 150" aria-hidden="true" focusable="false">
+      <ellipse cx="60" cy="142" rx="33" ry="6" fill="rgba(0,0,0,.2)" />
+      <ellipse cx="42" cy="118" rx="21" ry="15" fill="#af8055" />
+      <ellipse cx="78" cy="118" rx="21" ry="15" fill="#af8055" />
+      <ellipse cx="60" cy="99" rx="36" ry="40" fill="#bf9569" />
+      <ellipse cx="29" cy="67" rx="18" ry="24" fill="#b8895d" transform="rotate(-28 29 67)" />
+      <ellipse cx="91" cy="67" rx="18" ry="24" fill="#b8895d" transform="rotate(28 91 67)" />
+      <circle cx="60" cy="55" r="37" fill="#c79c70" />
+      <circle cx="35" cy="28" r="14" fill="#bb8d63" />
+      <circle cx="85" cy="28" r="14" fill="#bb8d63" />
+      <circle cx="35" cy="29" r="7" fill="#e6c6a0" />
+      <circle cx="85" cy="29" r="7" fill="#e6c6a0" />
+      <ellipse cx="60" cy="70" rx="22" ry="16" fill="#f0dfc5" />
+      <circle cx="47" cy="53" r="3.4" fill="#30231d" />
+      <circle cx="73" cy="53" r="3.4" fill="#30231d" />
+      <ellipse cx="60" cy="65" rx="5.7" ry="4.3" fill="#30231d" />
+      <path d="M53 73 Q60 79 67 73" fill="none" stroke="#70503e" strokeWidth="2.2" strokeLinecap="round" />
+      <path d="M28 80 Q60 94 92 79 L88 91 Q60 105 32 92 Z" fill={scarfColor} />
+      <path d="M77 91 L91 88 L88 116 L76 113 Z" fill={scarfColor} />
+      <path d="M27 27 Q34 3 62 8 Q84 11 91 29 Z" fill={hatColor} />
+      <path d="M27 27 Q59 37 92 27 L92 36 Q60 47 28 36 Z" fill="#f4ead8" />
+      <circle cx="62" cy="8" r="8" fill="#f4ead8" />
+      <path d="M40 107 Q60 117 80 107" fill="none" stroke="rgba(255,244,221,.46)" strokeWidth="2" />
+    </svg>
+  );
+}
+
 export default function App() {
   const [photos, setPhotos] = useState<(CapturedPhoto | null)[]>(EMPTY_PHOTOS);
   const [mode, setMode] = useState<Mode>('ready');
@@ -274,20 +306,14 @@ export default function App() {
       </Suspense>
       <div className="winter-wash" aria-hidden="true" />
       <main className={`app-shell ${mode === 'ready' ? 'app-shell-tree' : 'app-shell-session'}`}>
-      <header className="topbar">
-        <a className="brand" href="/" aria-label="Polaroid App startpagina">
-          <span className="brand-mark"><Aperture size={22} strokeWidth={2.2} /></span>
-          <span>POLAROID APP</span>
-        </a>
-        <div className="topbar-right">
-          <span className="edition-tag"><Sparkles size={14} /> KERSTSTUDIO</span>
-          <div className="privacy-tag"><ShieldCheck size={16} /> Alleen op jouw apparaat</div>
-        </div>
-      </header>
-
       {mode === 'ready' ? (
         <section className="tree-landing" aria-labelledby="tree-title">
+          <div className="bear-visitors" aria-hidden="true">
+            <ChristmasBear side="left" />
+            <ChristmasBear side="right" />
+          </div>
           <div className="tree-copy">
+            <div className="tree-wordmark"><Aperture size={19} /><span>POLAROID APP</span><i /></div>
             <p className="eyebrow"><span className="eyebrow-dot" /> KERSTSTUDIO · 2026</p>
             <h1 id="tree-title">DIT WORDT<br /><span>JOUW KERST.</span></h1>
             <p className="tree-intro">Drie momenten. Een kerst om te bewaren.</p>
@@ -311,7 +337,7 @@ export default function App() {
       <>
       <div className="intro-row">
         <div>
-          <p className="eyebrow"><span className="eyebrow-dot" /> WINTEREDITIE · 2026</p>
+          <p className="eyebrow"><span className="eyebrow-dot" /> POLAROID APP · WINTEREDITIE</p>
           <h1>Vang de kerst.<br /><span>Hou 'm dichtbij.</span></h1>
         </div>
         <p className="intro-note">Een nacht vol kleine wonderen, vastgelegd in jouw eigen kerststrip.</p>

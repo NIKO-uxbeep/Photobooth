@@ -55,6 +55,79 @@ function addGift(scene: THREE.Scene, x: number, z: number, color: string, size: 
   scene.add(gift);
 }
 
+function addBear(scene: THREE.Scene, furColor = '#b98b60', scarfColor = '#bd493a') {
+  const bear = new THREE.Group();
+  const fur = new THREE.MeshStandardMaterial({ color: furColor, roughness: 0.93, flatShading: true });
+  const lightFur = new THREE.MeshStandardMaterial({ color: '#ead7b8', roughness: 0.95, flatShading: true });
+  const dark = new THREE.MeshStandardMaterial({ color: '#30231d', roughness: 0.42 });
+  const scarfMaterial = new THREE.MeshStandardMaterial({ color: scarfColor, roughness: 0.72 });
+  const cream = new THREE.MeshStandardMaterial({ color: '#f4e8cf', roughness: 0.8 });
+
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.52, 14, 12), fur);
+  body.position.y = 0.78;
+  body.scale.set(0.9, 1.12, 0.72);
+  bear.add(body);
+
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 14, 12), fur);
+  head.position.set(0, 1.58, 0.04);
+  bear.add(head);
+
+  for (const side of [-1, 1]) {
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), fur);
+    ear.position.set(side * 0.29, 1.88, 0.02);
+    bear.add(ear);
+    const innerEar = new THREE.Mesh(new THREE.SphereGeometry(0.075, 8, 6), lightFur);
+    innerEar.position.set(side * 0.29, 1.88, 0.14);
+    bear.add(innerEar);
+
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.043, 8, 6), dark);
+    eye.position.set(side * 0.14, 1.64, 0.38);
+    bear.add(eye);
+
+    const arm = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 8), fur);
+    arm.position.set(side * 0.48, 0.95, 0.02);
+    arm.scale.set(0.8, 1.25, 0.82);
+    bear.add(arm);
+
+    const leg = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 8), fur);
+    leg.position.set(side * 0.25, 0.2, 0.08);
+    leg.scale.set(1, 0.75, 1.05);
+    bear.add(leg);
+  }
+
+  const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.19, 10, 8), lightFur);
+  muzzle.position.set(0, 1.48, 0.35);
+  muzzle.scale.set(1.15, 0.78, 0.78);
+  bear.add(muzzle);
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), dark);
+  nose.position.set(0, 1.55, 0.49);
+  bear.add(nose);
+
+  const scarf = new THREE.Mesh(new THREE.TorusGeometry(0.31, 0.075, 8, 18), scarfMaterial);
+  scarf.rotation.x = Math.PI / 2;
+  scarf.position.y = 1.3;
+  bear.add(scarf);
+  const scarfTail = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.43, 0.09), scarfMaterial);
+  scarfTail.position.set(0.2, 1.08, 0.3);
+  scarfTail.rotation.z = -0.22;
+  bear.add(scarfTail);
+
+  const hat = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.58, 10), new THREE.MeshStandardMaterial({ color: '#bd493a', roughness: 0.72 }));
+  hat.position.set(0.02, 2.08, 0.01);
+  hat.rotation.z = -0.17;
+  bear.add(hat);
+  const hatTrim = new THREE.Mesh(new THREE.TorusGeometry(0.245, 0.075, 8, 14), cream);
+  hatTrim.rotation.x = Math.PI / 2;
+  hatTrim.position.set(0.02, 1.87, 0.01);
+  bear.add(hatTrim);
+  const pom = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), cream);
+  pom.position.set(-0.02, 2.39, 0.02);
+  bear.add(pom);
+
+  scene.add(bear);
+  return bear;
+}
+
 function addHeroTree(scene: THREE.Scene) {
   const tree = new THREE.Group();
   tree.position.set(0, 0, -2.2);
@@ -191,6 +264,15 @@ export default function WinterScene({ interactive = false, onTreeClick }: Winter
     scene.add(ground);
 
     const heroTree = addHeroTree(scene);
+    const bearActors = [
+      { group: addBear(scene), direction: 1, delay: 0.4, period: 20, duration: 8 },
+      { group: addBear(scene, '#c89969', '#286044'), direction: -1, delay: 10, period: 23, duration: 8 },
+    ];
+    bearActors.forEach(({ group, direction }) => {
+      group.scale.setScalar(0.94);
+      group.position.set(direction * 10, 0, 2.1);
+      group.visible = false;
+    });
 
     [
       [-5.1, -3.2, 2.05], [-3.6, -5.7, 1.42], [-7.1, -7, 1.35],
@@ -229,7 +311,7 @@ export default function WinterScene({ interactive = false, onTreeClick }: Winter
       bulbs.push(bulb);
     }
 
-    const snowCount = 520;
+    const snowCount = 1800;
     const snowPositions = new Float32Array(snowCount * 3);
     const snowSpeeds = new Float32Array(snowCount);
     for (let index = 0; index < snowCount; index += 1) {
@@ -242,7 +324,7 @@ export default function WinterScene({ interactive = false, onTreeClick }: Winter
     snowGeometry.setAttribute('position', new THREE.BufferAttribute(snowPositions, 3));
     const snow = new THREE.Points(
       snowGeometry,
-      new THREE.PointsMaterial({ color: '#f1f5e9', size: 0.055, transparent: true, opacity: 0.76, sizeAttenuation: true }),
+      new THREE.PointsMaterial({ color: '#f1f5e9', size: 0.105, transparent: true, opacity: 0.88, sizeAttenuation: true }),
     );
     scene.add(snow);
 
@@ -295,6 +377,24 @@ export default function WinterScene({ interactive = false, onTreeClick }: Winter
       heroTree.bulbs.forEach((bulb, index) => {
         const material = bulb.material as THREE.MeshBasicMaterial;
         material.color.setHex(Math.floor(time / 28 + index) % 4 === 0 ? 0xffffff : [0xffe6a1, 0xe87860, 0xb9dfb5][index % 3]);
+      });
+      const elapsed = time / 60;
+      bearActors.forEach(({ group, direction, delay, period, duration }) => {
+        const cycle = (elapsed + delay) % period;
+        if (cycle > duration) {
+          group.visible = false;
+          return;
+        }
+        group.visible = true;
+        const progress = cycle / duration;
+        const enter = progress < 0.36 ? progress / 0.36 : progress > 0.72 ? 1 - (progress - 0.72) / 0.28 : 1;
+        const eased = enter * enter * (3 - 2 * enter);
+        const mobile = window.innerWidth <= 700;
+        const startX = mobile ? 4 : 9.5;
+        const peekX = mobile ? 1.9 : 4.3;
+        group.position.x = direction * (startX - eased * (startX - peekX));
+        group.position.y = Math.sin(progress * Math.PI) * 0.12;
+        group.rotation.y = direction * (0.12 + Math.sin(progress * Math.PI * 2) * 0.08);
       });
       for (let index = 0; index < bulbs.length; index += 1) {
         const material = bulbs[index].material as THREE.MeshBasicMaterial;

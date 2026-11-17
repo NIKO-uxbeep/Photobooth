@@ -41,7 +41,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-
 .winter-wash { position: fixed; z-index: 1; inset: 0; background: linear-gradient(180deg, rgba(8, 24, 21, .5), rgba(8, 24, 21, .08) 42%, rgba(8, 24, 21, .57)), linear-gradient(90deg, rgba(8, 24, 21, .36), transparent 25%, transparent 75%, rgba(8, 24, 21, .32)); pointer-events: none; }
 
 .app-shell { position: relative; z-index: 2; display: flex; flex-direction: column; width: min(1220px, calc(100% - 64px)); min-height: 100svh; margin: 0 auto; padding: 24px 0 20px; }
-.app-shell-tree { width: min(1320px, calc(100% - 72px)); }
+.app-shell-tree { width: min(1320px, calc(100% - 72px)); padding-top: clamp(30px, 6vh, 58px); }
 .topbar, .brand, .privacy-tag, .topbar-right, .edition-tag, .section-topline, .capture-meta, .camera-controls, .button, .strip-note, .ready-label, .text-action, .footer-note { display: flex; align-items: center; }
 .topbar { justify-content: space-between; min-height: 50px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
 .brand { gap: 10px; color: var(--cream); text-decoration: none; font-size: 13px; font-weight: 700; }
@@ -62,6 +62,9 @@ h1 span { color: var(--gold); }
 
 .tree-landing { position: relative; display: grid; flex: 1; grid-template-columns: 1fr 1fr; align-items: start; min-height: min(720px, calc(100svh - 150px)); padding-top: clamp(44px, 8vh, 86px); }
 .tree-copy { position: relative; z-index: 2; max-width: 520px; pointer-events: none; }
+.tree-wordmark { display: flex; align-items: center; gap: 9px; margin-bottom: 20px; color: var(--cream); font-size: 11px; font-weight: 700; }
+.tree-wordmark svg { color: var(--gold); }
+.tree-wordmark i { width: 44px; height: 1px; margin-left: 2px; background: rgba(231, 199, 127, .64); }
 .tree-copy .eyebrow { margin-bottom: 17px; }
 .tree-copy h1 { font-size: 76px; line-height: .91; white-space: nowrap; }
 .tree-copy h1 span { color: #eecc80; }
@@ -84,6 +87,8 @@ h1 span { color: var(--gold); }
 .tree-action-note { display: flex; align-items: center; gap: 6px; margin: 0; color: rgba(244, 241, 228, .8); font-size: 10px; text-shadow: 0 1px 5px rgba(0, 0, 0, .8); }
 .tree-action-note svg { color: var(--gold); }
 .tree-edition-mark { position: absolute; right: 0; bottom: 17px; display: flex; align-items: center; gap: 9px; color: rgba(244, 241, 228, .65); font-size: 9px; font-weight: 700; }
+.bear-visitors { display: none; }
+.bear-visitor { position: absolute; width: 82px; height: auto; overflow: visible; filter: drop-shadow(0 8px 8px rgba(0, 0, 0, .28)); opacity: 0; pointer-events: none; }
 .tree-edition-mark i { width: 28px; height: 1px; background: rgba(231, 199, 127, .6); }
 
 .workspace { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(260px, .75fr); gap: 70px; align-items: start; }
@@ -176,7 +181,7 @@ h2 { margin: 0; color: var(--cream); font-family: Fraunces, Georgia, serif; font
 
 @media (max-width: 700px) {
   .app-shell { width: min(calc(100% - 34px), 520px); padding-top: max(14px, env(safe-area-inset-top)); padding-bottom: max(18px, env(safe-area-inset-bottom)); }
-  .app-shell-tree { width: min(calc(100% - 28px), 520px); }
+  .app-shell-tree { width: min(calc(100% - 28px), 520px); padding-top: max(14px, env(safe-area-inset-top)); }
   .topbar { min-height: 42px; padding-bottom: 12px; }
   .topbar-right { gap: 12px; }
   .edition-tag { font-size: 8px; }
@@ -185,8 +190,9 @@ h2 { margin: 0; color: var(--cream); font-family: Fraunces, Georgia, serif; font
   .intro-row { align-items: start; flex-direction: column; gap: 9px; padding: 32px 0 20px; }
   h1 { font-size: 39px; line-height: 1.02; }
   .intro-note { width: auto; max-width: 300px; margin: 0; font-size: 11px; }
-  .tree-landing { grid-template-columns: 1fr; align-content: start; min-height: calc(100svh - 112px); padding-top: 40px; }
+  .tree-landing { grid-template-columns: 1fr; align-content: start; min-height: calc(100svh - 112px); padding-top: 34px; }
   .tree-copy { max-width: 340px; }
+  .tree-wordmark { margin-bottom: 15px; font-size: 10px; }
   .tree-copy .eyebrow { margin-bottom: 13px; }
   .tree-copy h1 { font-size: 41px; line-height: .95; }
   .tree-copy h1 span { white-space: nowrap; }
@@ -196,6 +202,21 @@ h2 { margin: 0; color: var(--cream); font-family: Fraunces, Georgia, serif; font
   .tree-orbit-two { top: -128px; width: 245px; height: 245px; }
   .tree-start-button { width: min(calc(100% - 26px), 340px); min-height: 64px; }
   .tree-edition-mark { right: 2px; bottom: 13px; font-size: 8px; }
+  .bear-visitors { position: absolute; z-index: 1; inset: 0; display: block; overflow: hidden; pointer-events: none; }
+  .bear-visitor-left { top: 50%; left: -4px; animation: bear-peek-left 18s 1.2s ease-in-out infinite; }
+  .bear-visitor-right { top: 56%; right: -4px; animation: bear-peek-right 22s 10s ease-in-out infinite; }
+  @keyframes bear-peek-left {
+    0%, 70%, 100% { opacity: 0; transform: translateX(-115%) rotate(9deg); }
+    8% { opacity: 1; }
+    17%, 34% { opacity: 1; transform: translateX(2px) rotate(-5deg); }
+    43% { opacity: 0; transform: translateX(-115%) rotate(9deg); }
+  }
+  @keyframes bear-peek-right {
+    0%, 70%, 100% { opacity: 0; transform: translateX(115%) rotate(-9deg); }
+    8% { opacity: 1; }
+    17%, 34% { opacity: 1; transform: translateX(-2px) rotate(5deg); }
+    43% { opacity: 0; transform: translateX(115%) rotate(-9deg); }
+  }
   .workspace { grid-template-columns: 1fr; gap: 30px; }
   .workspace-ready .shoot-panel { width: 100%; }
   .viewfinder { width: 100%; max-width: 520px; aspect-ratio: 4 / 3; margin-top: 12px; }
@@ -215,4 +236,5 @@ h2 { margin: 0; color: var(--cream); font-family: Fraunces, Georgia, serif; font
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .bear-visitor { opacity: 1; transform: none; }
 }
