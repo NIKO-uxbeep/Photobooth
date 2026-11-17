@@ -9,6 +9,7 @@ import {
   Share2,
   ShieldCheck,
   Sparkles,
+  TreePine,
   X,
 } from 'lucide-react';
 import { capturePhoto, createStrip, type CapturedPhoto } from './lib/createStrip';
@@ -269,10 +270,10 @@ export default function App() {
   return (
     <>
       <Suspense fallback={<div className="winter-world winter-world-static" aria-hidden="true" />}>
-        <WinterScene />
+        <WinterScene interactive={mode === 'ready' && !pending} onTreeClick={() => void startCamera()} />
       </Suspense>
       <div className="winter-wash" aria-hidden="true" />
-      <main className="app-shell">
+      <main className={`app-shell ${mode === 'ready' ? 'app-shell-tree' : 'app-shell-session'}`}>
       <header className="topbar">
         <a className="brand" href="/" aria-label="Polaroid App startpagina">
           <span className="brand-mark"><Aperture size={22} strokeWidth={2.2} /></span>
@@ -284,6 +285,30 @@ export default function App() {
         </div>
       </header>
 
+      {mode === 'ready' ? (
+        <section className="tree-landing" aria-labelledby="tree-title">
+          <div className="tree-copy">
+            <p className="eyebrow"><span className="eyebrow-dot" /> KERSTSTUDIO · 2026</p>
+            <h1 id="tree-title">DIT WORDT<br /><span>JOUW KERST.</span></h1>
+            <p className="tree-intro">Drie momenten. Een kerst om te bewaren.</p>
+          </div>
+          <div className="tree-action-zone">
+            <span className="tree-orbit tree-orbit-one" aria-hidden="true" />
+            <span className="tree-orbit tree-orbit-two" aria-hidden="true" />
+            <button className="tree-start-button" onClick={() => void startCamera()} disabled={pending}>
+              <span className="tree-start-icon"><TreePine size={22} /></span>
+              <span className="tree-start-copy">
+                <strong>{pending ? 'Camera verbinden...' : 'Tik op de kerstboom'}</strong>
+                <small>en maak jouw fotostrip</small>
+              </span>
+              <ChevronRight className="tree-start-arrow" size={19} />
+            </button>
+            <p className="tree-action-note"><Sparkles size={13} /> De camera maakt drie foto’s achter elkaar</p>
+          </div>
+          <span className="tree-edition-mark">NO. 03 <i /> WINTER / 26</span>
+        </section>
+      ) : (
+      <>
       <div className="intro-row">
         <div>
           <p className="eyebrow"><span className="eyebrow-dot" /> WINTEREDITIE · 2026</p>
@@ -302,7 +327,7 @@ export default function App() {
             <span className="shot-count">{String(photoCount).padStart(2, '0')} <span>/ 03</span></span>
           </div>
 
-          <div className={`viewfinder ${mode === 'camera' ? 'viewfinder-live' : ''} ${mode === 'ready' ? 'viewfinder-ready' : ''}`}>
+          <div className={`viewfinder ${mode === 'camera' ? 'viewfinder-live' : ''}`}>
             {mode === 'camera' ? (
               <video
                 ref={videoRef}
@@ -354,11 +379,6 @@ export default function App() {
           {error && <p className="error-message" role="alert">{error}</p>}
 
           <div className="primary-actions">
-            {mode === 'ready' && (
-              <button className="button button-primary" onClick={() => void startCamera()} disabled={pending}>
-                <Aperture size={19} /> {pending ? 'Camera starten...' : 'Open de kerstcamera'} <ChevronRight size={18} />
-              </button>
-            )}
             {mode === 'camera' && (
               <div className="camera-controls">
                 <p className="sequence-message">De magie is bezig...</p>
@@ -420,6 +440,8 @@ export default function App() {
         </section>
         )}
       </div>
+      </>
+      )}
 
       <footer className="footer-note">
         <span><ShieldCheck size={14} /> Jouw beelden blijven alleen op dit apparaat.</span>

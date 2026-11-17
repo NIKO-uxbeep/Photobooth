@@ -1,6 +1,6 @@
 # Polaroid App
 
-Een mobiele webapp die na het starten de live camera opent, vier seconden aftelt en automatisch drie foto's achter elkaar maakt. Daarna verschijnt direct een lokale PNG-fotostrip. De app heeft geen database, upload-endpoint of account. Opnames blijven alleen in het geheugen van de geopende pagina en verdwijnen wanneer die wordt gesloten of ververst.
+Een mobiele webapp die opent met een interactieve 3D-kerstboom. Tik op de boom of op de startknop om de live camera te openen; daarna telt de app vier seconden af en maakt automatisch drie foto's achter elkaar. Vervolgens verschijnt een lokale PNG-fotostrip. De app heeft geen database, upload-endpoint of account. Opnames blijven alleen in het geheugen van de geopende pagina en verdwijnen wanneer die wordt gesloten of ververst.
 
 ## Lokaal starten
 
