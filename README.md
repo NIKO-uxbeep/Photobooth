@@ -1,4 +1,4 @@
-# Fotostrip
+# Polaroid App
 
 Een mobiele webapp die drie live camerabeelden lokaal samenstelt tot een PNG-fotostrip. De app heeft geen database, upload-endpoint of account. Opnames blijven alleen in het geheugen van de geopende pagina en verdwijnen wanneer die wordt gesloten of ververst.
 
@@ -16,8 +16,8 @@ Open `http://localhost:8080`. Cameratoegang op een telefoon vereist HTTPS; allee
 ```powershell
 npm run check
 npm run build
-docker build -t fotostrip .
-docker run --rm -p 8080:8080 fotostrip
+docker build -t polaroid-app .
+docker run --rm -p 8080:8080 polaroid-app
 ```
 
 De container serveert de statische client via poort 8080. De uiteindelijke omgeving moet HTTPS aanbieden voor live cameratoegang.

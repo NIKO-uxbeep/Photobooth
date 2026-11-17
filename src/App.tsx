@@ -214,9 +214,9 @@ export default function App() {
   return (
     <main className="app-shell">
       <header className="topbar">
-        <a className="brand" href="/" aria-label="Klik Klaar startpagina">
+        <a className="brand" href="/" aria-label="Polaroid App startpagina">
           <span className="brand-mark"><Aperture size={22} strokeWidth={2.2} /></span>
-          <span>KLIK KLAAR</span>
+          <span>POLAROID APP</span>
         </a>
         <div className="privacy-tag"><ShieldCheck size={16} /> Alleen op jouw apparaat</div>
       </header>
@@ -341,7 +341,7 @@ export default function App() {
                   {photo ? <img src={photo.url} alt={`Voorbeeld foto ${slot + 1}`} /> : <span>0{slot + 1}</span>}
                 </div>
               ))}
-              <div className="strip-caption"><span>KLIK KLAAR</span><span>3 MOMENTEN</span></div>
+              <div className="strip-caption"><span>POLAROID APP</span><span>3 MOMENTEN</span></div>
             </div>
           )}
 

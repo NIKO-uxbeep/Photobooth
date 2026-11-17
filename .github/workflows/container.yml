@@ -33,5 +33,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/afasgroep/fotostrip:latest
-            ghcr.io/afasgroep/fotostrip:${{ github.sha }}
+            ghcr.io/afasgroep/polaroid-app:latest
+            ghcr.io/afasgroep/polaroid-app:${{ github.sha }}

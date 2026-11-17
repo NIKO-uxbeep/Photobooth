@@ -56,7 +56,7 @@ export async function createStrip(photos: CapturedPhoto[]): Promise<Blob> {
   await document.fonts.ready;
   context.fillStyle = '#204a3d';
   context.font = '700 43px Fraunces, Georgia, serif';
-  context.fillText('KLIK KLAAR', FRAME, STRIP_HEIGHT - 82);
+  context.fillText('POLAROID APP', FRAME, STRIP_HEIGHT - 82);
   context.textAlign = 'right';
   context.fillStyle = '#d95643';
   context.font = '700 24px "DM Sans", sans-serif';
