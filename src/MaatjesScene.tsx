@@ -553,12 +553,12 @@ const HIGHLAND_COW = toDataUrl(<HighlandCow />);
 
 export const NURSERY_ART = {
   horse: toDataUrl(<RockingHorse width={400} height={340} />),
-  bears: [toDataUrl(<Bear variant="bow" width={340} height={400} />), toDataUrl(<Bear variant="pacifier" width={340} height={400} />)] as [string, string],
+  bears: [toDataUrl(<Bear variant="bow" width={340} height={464} />), toDataUrl(<Bear variant="pacifier" width={340} height={464} />)] as [string, string],
 };
 
 function Bear({ variant, width, height }: { variant: BearVariant; width?: number; height?: number }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 200" width={width} height={height} className="bear-svg">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 232" width={width} height={height} className="bear-svg">
       <g>
         <circle cx="42" cy="48" r="20" fill="#a0673a" />
         <circle cx="42" cy="48" r="10" fill="#d9a273" />
@@ -566,6 +566,15 @@ function Bear({ variant, width, height }: { variant: BearVariant; width?: number
         <circle cx="122" cy="48" r="10" fill="#d9a273" />
         <ellipse cx="82" cy="170" rx="54" ry="42" fill="#a0673a" />
         <ellipse cx="82" cy="176" rx="31" ry="27" fill="#d9a273" />
+        {[54, 110].map((x) => (
+          <g key={x}>
+            <ellipse cx={x} cy="214" rx="22" ry="14" fill="#8d5a32" />
+            <ellipse cx={x} cy="217" rx="11" ry="7" fill="#d9a273" />
+            <circle cx={x - 9} cy="206" r="3" fill="#d9a273" />
+            <circle cx={x} cy="204" r="3" fill="#d9a273" />
+            <circle cx={x + 9} cy="206" r="3" fill="#d9a273" />
+          </g>
+        ))}
         <ellipse cx="34" cy="160" rx="13" ry="24" fill="#8d5a32" transform="rotate(25 34 160)" />
         <circle cx="82" cy="84" r="50" fill="#a0673a" />
         <ellipse cx="82" cy="102" rx="22" ry="17" fill="#d9a273" />

@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
 import { ArrowDownToLine, RotateCcw, Share2, X } from 'lucide-react';
 import { capturePhoto, createStrip, type CapturedPhoto } from './lib/createStrip';
 import ChristmasMusic from './ChristmasMusic';
-import InstallTip from './InstallTip';
+import InstallTip, { isIos } from './InstallTip';
 import MaatjesScene, { Marquee } from './MaatjesScene';
 import { readThemeId, saveThemeId, THEMES, type ThemeId } from './themes';
 
@@ -37,6 +37,7 @@ export default function App() {
   const [themeMenu, setThemeMenu] = useState(false);
   const theme = THEMES[themeId];
   const pressTimerRef = useRef(0);
+  const [iosDevice] = useState(isIos);
   const videoRef = useRef<HTMLVideoElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -208,6 +209,15 @@ export default function App() {
     }
   }
 
+  function saveResult(event: MouseEvent<HTMLAnchorElement>) {
+    // iOS only reaches the Photos app through the share sheet ("Bewaar afbeelding").
+    if (!iosDevice || !result || !navigator.canShare) return;
+    const file = new File([result.blob], theme.fileName, { type: 'image/png' });
+    if (!navigator.canShare({ files: [file] })) return;
+    event.preventDefault();
+    void shareResult();
+  }
+
   return (
     <main className={`booth booth-${mode}`}>
       <MaatjesScene key={`scene-${themeId}`} theme={theme} showProp={mode === 'ready'} />
@@ -263,10 +273,11 @@ export default function App() {
             <h1 id="booth-title" className="section-title" ref={headingRef} tabIndex={-1}>Jouw <span className="gold-text">{theme.collageWord}</span></h1>
             <img className="booth-collage" src={result.url} alt="Fotocollage met drie foto's" width={1080} height={1920} />
             <div className="hero-actions">
-              <a className="spaced spaced--primary spaced--small" href={result.url} download={theme.fileName} aria-label="Downloaden"><ArrowDownToLine size={18} aria-hidden="true" /><Letters text="Downloaden" /></a>
+              <a className="spaced spaced--primary spaced--small" href={result.url} download={theme.fileName} aria-label={iosDevice ? 'Opslaan' : 'Downloaden'} onClick={saveResult}><ArrowDownToLine size={18} aria-hidden="true" /><Letters text={iosDevice ? 'Opslaan' : 'Downloaden'} /></a>
               <button type="button" className="spaced spaced--gold spaced--small" aria-label="Delen" onClick={() => void shareResult()}><Share2 size={18} aria-hidden="true" /><Letters text="Delen" /></button>
               <button type="button" className="spaced spaced--ghost spaced--small" aria-label="Opnieuw" onClick={reset}><RotateCcw size={18} aria-hidden="true" /><Letters text="Opnieuw" /></button>
             </div>
+            {iosDevice && <p className="booth-save-hint">Tik op Opslaan en kies <b>Bewaar afbeelding</b> om de collage in je Foto's te zetten.</p>}
           </>
         )}
         {error && <p className="booth-error" role="alert">{error}</p>}
