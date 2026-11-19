@@ -55,8 +55,12 @@ export const THEMES: Record<ThemeId, Theme> = {
 };
 
 const STORAGE_KEY = 'fotobooth-thema';
+const URL_PARAM = 'thema';
+const URL_VALUES: Record<string, ThemeId> = { kerst: 'christmas', christmas: 'christmas', babyshower: 'babyshower' };
 
 export function readThemeId(): ThemeId {
+  const fromUrl = URL_VALUES[new URLSearchParams(window.location.search).get(URL_PARAM)?.toLowerCase() ?? ''];
+  if (fromUrl) return fromUrl;
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored === 'babyshower' ? 'babyshower' : 'christmas';
@@ -66,6 +70,11 @@ export function readThemeId(): ThemeId {
 }
 
 export function saveThemeId(id: ThemeId) {
+  const url = new URL(window.location.href);
+  if (url.searchParams.has(URL_PARAM)) {
+    url.searchParams.set(URL_PARAM, id === 'christmas' ? 'kerst' : id);
+    window.history.replaceState(null, '', url);
+  }
   try {
     localStorage.setItem(STORAGE_KEY, id);
   } catch {
