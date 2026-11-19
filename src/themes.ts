@@ -49,7 +49,7 @@ export const THEMES: Record<ThemeId, Theme> = {
     collageWord: 'babycollage',
     fileName: 'mijn-babycollage.png',
     themeColor: '#0e2340',
-    collage: { kind: 'nursery', title: 'Daphnes Babyshower', ...NURSERY_ART },
+    collage: { kind: 'nursery', title: 'Daphne’s Babyshower', ...NURSERY_ART },
     song: TWINKLE_TWINKLE,
   },
 };
