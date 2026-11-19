@@ -41,7 +41,7 @@ function addTree(scene: THREE.Scene, x: number, z: number, scale: number) {
   scene.add(tree);
 }
 
-function addGift(scene: THREE.Scene, x: number, z: number, color: string, size: number) {
+export function addGift(scene: THREE.Object3D, x: number, z: number, color: string, size: number) {
   const gift = new THREE.Group();
   gift.position.set(x, size / 2 - 0.02, z);
   const box = new THREE.Mesh(
@@ -128,7 +128,7 @@ function addBear(scene: THREE.Scene, furColor = '#b98b60', scarfColor = '#bd493a
   return bear;
 }
 
-function addHeroTree(scene: THREE.Scene) {
+export function addHeroTree(scene: THREE.Scene) {
   const tree = new THREE.Group();
   tree.position.set(0, 0, -2.2);
   tree.scale.setScalar(1.35);

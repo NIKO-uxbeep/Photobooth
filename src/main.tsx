@@ -1,11 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import '@fontsource/dm-sans/400.css';
-import '@fontsource/dm-sans/500.css';
-import '@fontsource/dm-sans/600.css';
-import '@fontsource/dm-sans/700.css';
-import '@fontsource/fraunces/600.css';
-import '@fontsource/fraunces/700.css';
+import '@fontsource/anton/400.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
+import '@fontsource/mountains-of-christmas/700.css';
+import '@fontsource/pacifico/400.css';
+import '@fontsource/great-vibes/400.css';
 import App from './App';
 import './styles.css';
 

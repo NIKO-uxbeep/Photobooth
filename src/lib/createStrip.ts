@@ -3,308 +3,312 @@ export type CapturedPhoto = {
   url: string;
 };
 
+export type CollageStyle =
+  | { kind: 'photo'; background: string }
+  | { kind: 'nursery'; title: string; bears: [string, string]; horse: string };
+
+type Picture = ImageBitmap | HTMLImageElement;
+
 const PHOTO_SIZE = 1200;
-const STRIP_WIDTH = 1800;
-const STRIP_HEIGHT = 2700;
+const STRIP_WIDTH = 1080;
+const STRIP_HEIGHT = 1920;
+const POLAROIDS = [
+  { x: 700, y: 600, size: 470, rotation: 0.05 },
+  { x: 330, y: 1050, size: 430, rotation: -0.06 },
+  { x: 640, y: 1500, size: 520, rotation: -0.035 },
+] as const;
+const SPARKLE_COLORS = ['255, 214, 120', '255, 236, 190', '255, 245, 220', '255, 190, 140'];
 
-function drawHolly(context: CanvasRenderingContext2D, x: number, y: number, scale = 1, flip = 1, rotation = 0) {
-  context.save();
-  context.translate(x, y);
-  context.scale(flip * scale, scale);
-  context.rotate(rotation);
+const images = new Map<string, Promise<HTMLImageElement>>();
 
-  for (const angle of [-0.82, 0, 0.82]) {
-    context.save();
-    context.rotate(angle);
-    context.beginPath();
-    context.moveTo(0, 0);
-    context.lineTo(9, -11);
-    context.lineTo(9, -22);
-    context.lineTo(18, -17);
-    context.lineTo(29, -22);
-    context.lineTo(28, -10);
-    context.lineTo(39, -5);
-    context.lineTo(28, 2);
-    context.lineTo(31, 14);
-    context.lineTo(19, 10);
-    context.lineTo(12, 20);
-    context.lineTo(8, 8);
-    context.closePath();
-    context.fillStyle = '#245b3d';
-    context.fill();
-    context.strokeStyle = '#17462f';
-    context.lineWidth = 1.5;
-    context.stroke();
-    context.beginPath();
-    context.moveTo(4, 2);
-    context.lineTo(28, -12);
-    context.strokeStyle = '#88a96e';
-    context.lineWidth = 1.25;
-    context.stroke();
-    context.restore();
+function loadImage(url: string) {
+  let image = images.get(url);
+  if (!image) {
+    const element = new Image();
+    element.src = url;
+    image = element.decode().then(
+      () => element,
+      (error: unknown) => {
+        images.delete(url);
+        throw error;
+      },
+    );
+    images.set(url, image);
   }
-
-  for (const [berryX, berryY] of [[15, 0], [24, 5], [19, 13]]) {
-    context.beginPath();
-    context.arc(berryX, berryY, 5, 0, Math.PI * 2);
-    context.fillStyle = '#bd493a';
-    context.fill();
-    context.beginPath();
-    context.arc(berryX - 1.5, berryY - 1.5, 1.4, 0, Math.PI * 2);
-    context.fillStyle = '#f2b28f';
-    context.fill();
-  }
-  context.restore();
+  return image;
 }
 
-function drawSnowflake(context: CanvasRenderingContext2D, x: number, y: number, size: number) {
-  context.save();
-  context.translate(x, y);
-  context.strokeStyle = '#b7a56c';
-  context.lineWidth = 2;
-  context.lineCap = 'round';
-  for (let arm = 0; arm < 6; arm += 1) {
-    context.save();
-    context.rotate((Math.PI / 3) * arm);
-    context.beginPath();
-    context.moveTo(0, 0);
-    context.lineTo(0, -size);
-    context.moveTo(0, -size * 0.55);
-    context.lineTo(-size * 0.2, -size * 0.76);
-    context.moveTo(0, -size * 0.55);
-    context.lineTo(size * 0.2, -size * 0.76);
-    context.stroke();
-    context.restore();
-  }
-  context.restore();
+function pictureSize(picture: Picture) {
+  return picture instanceof HTMLImageElement
+    ? { width: picture.naturalWidth, height: picture.naturalHeight }
+    : { width: picture.width, height: picture.height };
 }
 
-function drawBauble(context: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
-  context.beginPath();
-  context.moveTo(x, y - radius - 14);
-  context.lineTo(x, y - radius - 3);
-  context.strokeStyle = '#e0c47e';
-  context.lineWidth = 2;
-  context.stroke();
+function createRandom(seed: number) {
+  let state = seed;
+  return () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let value = Math.imul(state ^ (state >>> 15), 1 | state);
+    value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
-  context.fillStyle = '#d7bd7d';
-  context.fillRect(x - radius * 0.32, y - radius - 4, radius * 0.64, 7);
-
-  const gradient = context.createRadialGradient(x - radius * 0.35, y - radius * 0.38, 1, x, y, radius);
-  gradient.addColorStop(0, '#fff0cc');
-  gradient.addColorStop(0.25, color);
-  gradient.addColorStop(1, '#7f2825');
+function drawGlow(context: CanvasRenderingContext2D, x: number, y: number, radius: number, rgb: string, alpha: number) {
+  const glow = context.createRadialGradient(x, y, 0, x, y, radius);
+  glow.addColorStop(0, `rgba(${rgb}, ${alpha})`);
+  glow.addColorStop(0.6, `rgba(${rgb}, ${alpha * 0.35})`);
+  glow.addColorStop(1, `rgba(${rgb}, 0)`);
+  context.fillStyle = glow;
   context.beginPath();
   context.arc(x, y, radius, 0, Math.PI * 2);
-  context.fillStyle = gradient;
-  context.fill();
-  context.strokeStyle = '#e4cb86';
-  context.lineWidth = 2;
-  context.stroke();
-
-  context.beginPath();
-  context.ellipse(x - radius * 0.32, y - radius * 0.35, radius * 0.14, radius * 0.26, -0.5, 0, Math.PI * 2);
-  context.fillStyle = 'rgba(255, 250, 224, .78)';
   context.fill();
 }
 
-function drawBell(context: CanvasRenderingContext2D, x: number, y: number, flip = 1) {
+function drawSparkle(context: CanvasRenderingContext2D, x: number, y: number, size: number, rgb: string) {
+  drawGlow(context, x, y, size * 1.7, rgb, 0.5);
+  context.beginPath();
+  context.moveTo(x, y - size);
+  context.quadraticCurveTo(x, y, x + size, y);
+  context.quadraticCurveTo(x, y, x, y + size);
+  context.quadraticCurveTo(x, y, x - size, y);
+  context.quadraticCurveTo(x, y, x, y - size);
+  context.fillStyle = 'rgba(255, 255, 255, .9)';
+  context.fill();
+}
+
+function drawShimmer(context: CanvasRenderingContext2D) {
+  const random = createRandom(2026);
   context.save();
-  context.translate(x, y);
-  context.scale(flip, 1);
-  context.strokeStyle = '#f1d98c';
-  context.lineWidth = 5;
-  context.beginPath();
-  context.moveTo(-2, -33);
-  context.bezierCurveTo(-2, -48, 23, -48, 23, -33);
-  context.stroke();
-
-  context.beginPath();
-  context.moveTo(0, -27);
-  context.bezierCurveTo(-3, -6, -23, 12, -28, 24);
-  context.quadraticCurveTo(-1, 38, 29, 22);
-  context.bezierCurveTo(20, 7, 7, -9, 8, -27);
-  context.closePath();
-  const gold = context.createLinearGradient(-18, 0, 20, 18);
-  gold.addColorStop(0, '#fff0b0');
-  gold.addColorStop(0.42, '#d7aa4e');
-  gold.addColorStop(1, '#8e6128');
-  context.fillStyle = gold;
-  context.fill();
-  context.strokeStyle = '#f4d985';
-  context.lineWidth = 2;
-  context.stroke();
-
-  context.beginPath();
-  context.ellipse(0, 23, 30, 7, 0, 0, Math.PI * 2);
-  context.fillStyle = '#f2d47d';
-  context.fill();
-  context.beginPath();
-  context.arc(0, 33, 5, 0, Math.PI * 2);
-  context.fillStyle = '#bd493a';
-  context.fill();
+  context.globalCompositeOperation = 'lighter';
+  for (let index = 0; index < 1800; index += 1) {
+    const x = random() * STRIP_WIDTH;
+    const y = random() * STRIP_HEIGHT;
+    const size = 0.6 + random() * 1.8;
+    context.fillStyle = `rgba(${SPARKLE_COLORS[index % SPARKLE_COLORS.length]}, ${0.15 + random() * 0.55})`;
+    context.fillRect(x, y, size, size);
+  }
+  for (let index = 0; index < 50; index += 1) {
+    const x = random() * STRIP_WIDTH;
+    const y = random() * STRIP_HEIGHT;
+    drawSparkle(context, x, y, 5 + random() * 14, SPARKLE_COLORS[index % SPARKLE_COLORS.length]);
+  }
   context.restore();
 }
 
-function drawChristmasFrame(context: CanvasRenderingContext2D) {
-  context.fillStyle = '#aa302b';
-  context.fillRect(0, 0, STRIP_WIDTH, STRIP_HEIGHT);
-
-  context.save();
-  context.beginPath();
-  context.rect(22, 0, 46, STRIP_HEIGHT);
-  context.rect(STRIP_WIDTH - 68, 0, 46, STRIP_HEIGHT);
-  context.clip();
-  for (let y = -70; y < STRIP_HEIGHT + 90; y += 116) {
+function drawSnow(context: CanvasRenderingContext2D) {
+  const random = createRandom(1225);
+  for (let index = 0; index < 320; index += 1) {
+    const x = random() * STRIP_WIDTH;
+    const y = random() * STRIP_HEIGHT;
+    const radius = 1.5 + random() ** 2 * 7;
+    const flake = context.createRadialGradient(x, y, 0, x, y, radius);
+    flake.addColorStop(0, `rgba(255, 255, 255, ${0.65 + random() * 0.35})`);
+    flake.addColorStop(0.55, 'rgba(255, 255, 255, .45)');
+    flake.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    context.fillStyle = flake;
     context.beginPath();
-    context.moveTo(22, y);
-    context.lineTo(68, y + 42);
-    context.lineTo(68, y + 80);
-    context.lineTo(22, y + 38);
-    context.closePath();
-    context.fillStyle = '#f3e7d0';
-    context.fill();
-    context.beginPath();
-    context.moveTo(STRIP_WIDTH - 68, y + 42);
-    context.lineTo(STRIP_WIDTH - 22, y);
-    context.lineTo(STRIP_WIDTH - 22, y + 38);
-    context.lineTo(STRIP_WIDTH - 68, y + 80);
-    context.closePath();
-    context.fillStyle = '#f3e7d0';
+    context.arc(x, y, radius, 0, Math.PI * 2);
     context.fill();
   }
-  context.restore();
-
-  context.fillStyle = '#fff3de';
-  context.fillRect(92, 286, STRIP_WIDTH - 184, 2060);
-  context.strokeStyle = '#26553d';
-  context.lineWidth = 8;
-  context.strokeRect(13, 13, STRIP_WIDTH - 26, STRIP_HEIGHT - 26);
-  context.strokeStyle = '#d7bd7d';
-  context.lineWidth = 3;
-  context.strokeRect(34, 34, STRIP_WIDTH - 68, STRIP_HEIGHT - 68);
-
-  context.textAlign = 'center';
-  context.fillStyle = '#fff3d4';
-  context.font = '700 42px "DM Sans", sans-serif';
-  context.fillText('KERSTEDITIE 2026', STRIP_WIDTH / 2, 92);
-  drawBell(context, 178, 135);
-  drawBell(context, STRIP_WIDTH - 178, 135, -1);
-
-  context.beginPath();
-  context.moveTo(300, 204);
-  context.quadraticCurveTo(STRIP_WIDTH / 2, 222, STRIP_WIDTH - 300, 204);
-  context.strokeStyle = '#e9c977';
-  context.lineWidth = 2;
-  context.stroke();
-  for (let bulb = 0; bulb < 13; bulb += 1) {
-    const x = 320 + bulb * ((STRIP_WIDTH - 640) / 12);
-    const curve = (x - STRIP_WIDTH / 2) / (STRIP_WIDTH / 2);
-    const y = 204 + (1 - curve * curve) * 8;
-    context.beginPath();
-    context.arc(x, y + 4, 11, 0, Math.PI * 2);
-    context.fillStyle = ['#d7ad55', '#bd493a', '#597e54'][bulb % 3];
-    context.fill();
-  }
-
-  drawHolly(context, 88, 98, 2.1);
-  drawHolly(context, STRIP_WIDTH - 88, 98, 2.1, -1);
-  drawHolly(context, 88, STRIP_HEIGHT - 66, 2.1, 1, -0.9);
-  drawHolly(context, STRIP_WIDTH - 88, STRIP_HEIGHT - 66, 2.1, -1, 0.9);
-
-  const baubles: [number, number, number, string][] = [
-    [61, 520, 27, '#d64b38'],
-    [STRIP_WIDTH - 61, 680, 24, '#e1ba5f'],
-    [61, 1080, 23, '#e1ba5f'],
-    [STRIP_WIDTH - 61, 1420, 28, '#d64b38'],
-    [61, 1790, 25, '#d64b38'],
-    [STRIP_WIDTH - 61, 2050, 27, '#e1ba5f'],
-  ];
-  for (const [x, y, radius, color] of baubles) {
-    drawBauble(context, x, y, radius, color);
-  }
-
-  for (let y = 470, row = 0; y < 2300; y += 300, row += 1) {
-    const side = row % 2 === 0 ? 1 : -1;
-    for (const x of [61, STRIP_WIDTH - 61]) {
-      drawSnowflake(context, x + side * 30, y + 145, 22);
-    }
-  }
-
-  context.fillStyle = '#aa302b';
-  context.fillRect(70, 2380, STRIP_WIDTH - 140, 250);
-  context.strokeStyle = '#e6c576';
-  context.lineWidth = 3;
-  context.beginPath();
-  context.moveTo(170, 2398);
-  context.lineTo(STRIP_WIDTH - 170, 2398);
-  context.stroke();
 }
 
-function drawCoverPhoto(context: CanvasRenderingContext2D, bitmap: ImageBitmap, x: number, y: number, width: number, height: number) {
-  const sourceAspect = bitmap.width / bitmap.height;
+function drawCoverPhoto(context: CanvasRenderingContext2D, picture: Picture, x: number, y: number, width: number, height: number) {
+  const size = pictureSize(picture);
+  const sourceAspect = size.width / size.height;
   const targetAspect = width / height;
   let sourceX = 0;
   let sourceY = 0;
-  let sourceWidth = bitmap.width;
-  let sourceHeight = bitmap.height;
+  let sourceWidth = size.width;
+  let sourceHeight = size.height;
 
   if (sourceAspect > targetAspect) {
-    sourceWidth = bitmap.height * targetAspect;
-    sourceX = (bitmap.width - sourceWidth) / 2;
+    sourceWidth = size.height * targetAspect;
+    sourceX = (size.width - sourceWidth) / 2;
   } else {
-    sourceHeight = bitmap.width / targetAspect;
-    sourceY = (bitmap.height - sourceHeight) / 2;
+    sourceHeight = size.width / targetAspect;
+    sourceY = (size.height - sourceHeight) / 2;
   }
 
-  context.drawImage(bitmap, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
+  context.drawImage(picture, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
 }
 
-function drawPhotoCard(
-  context: CanvasRenderingContext2D,
-  bitmap: ImageBitmap,
-  centerX: number,
-  centerY: number,
-  width: number,
-  height: number,
-  caption: string,
-  rotation: number,
-  hero = false,
-) {
+function drawPhotoBackground(context: CanvasRenderingContext2D, background: Picture) {
+  drawCoverPhoto(context, background, 0, 0, STRIP_WIDTH, STRIP_HEIGHT);
+  const vignette = context.createRadialGradient(STRIP_WIDTH / 2, STRIP_HEIGHT / 2, 420, STRIP_WIDTH / 2, STRIP_HEIGHT / 2, 1150);
+  vignette.addColorStop(0, 'rgba(10, 4, 2, .25)');
+  vignette.addColorStop(1, 'rgba(10, 4, 2, .5)');
+  context.fillStyle = vignette;
+  context.fillRect(0, 0, STRIP_WIDTH, STRIP_HEIGHT);
   context.save();
-  context.translate(centerX, centerY);
-  context.rotate(rotation);
-  context.shadowColor = 'rgba(43, 26, 18, .35)';
-  context.shadowBlur = hero ? 28 : 23;
-  context.shadowOffsetY = hero ? 17 : 14;
-  context.fillStyle = '#fffdf6';
-  context.fillRect(-width / 2, -height / 2, width, height);
-  context.shadowColor = 'transparent';
+  context.globalCompositeOperation = 'lighter';
+  drawGlow(context, STRIP_WIDTH / 2, STRIP_HEIGHT / 2, 820, '255, 180, 100', 0.18);
+  context.restore();
+}
 
-  const padding = hero ? 28 : 24;
-  const captionHeight = hero ? 132 : 108;
-  const photoX = -width / 2 + padding;
-  const photoY = -height / 2 + padding;
-  const photoWidth = width - padding * 2;
-  const photoHeight = height - padding * 2 - captionHeight;
-  drawCoverPhoto(context, bitmap, photoX, photoY, photoWidth, photoHeight);
-
-  context.strokeStyle = '#d8c99e';
-  context.lineWidth = 3;
-  context.strokeRect(photoX, photoY, photoWidth, photoHeight);
-  context.fillStyle = '#244e39';
-  context.textAlign = 'left';
-  context.textBaseline = 'middle';
-  context.font = hero ? '700 39px Fraunces, Georgia, serif' : '700 30px Fraunces, Georgia, serif';
-  context.fillText(caption, photoX + 8, height / 2 - captionHeight / 2);
-
-  const stampX = width / 2 - padding - (hero ? 24 : 20);
-  const stampY = height / 2 - captionHeight / 2;
+function drawStar(context: CanvasRenderingContext2D, x: number, y: number, radius: number, color: string) {
   context.beginPath();
-  context.arc(stampX, stampY, hero ? 16 : 13, 0, Math.PI * 2);
-  context.fillStyle = '#bd493a';
+  for (let point = 0; point < 10; point += 1) {
+    const angle = -Math.PI / 2 + (point * Math.PI) / 5;
+    const distance = point % 2 ? radius * 0.45 : radius;
+    context.lineTo(x + Math.cos(angle) * distance, y + Math.sin(angle) * distance);
+  }
+  context.closePath();
+  context.fillStyle = color;
   context.fill();
-  drawSnowflake(context, stampX, stampY, hero ? 9 : 7);
+}
+
+function drawCloud(context: CanvasRenderingContext2D, x: number, y: number, scale: number) {
+  context.fillStyle = 'rgba(255, 255, 255, .78)';
+  for (const [dx, dy, radius] of [[-60, 10, 38], [-20, -12, 50], [30, -4, 44], [70, 12, 32], [0, 18, 40]] as const) {
+    context.beginPath();
+    context.arc(x + dx * scale, y + dy * scale, radius * scale, 0, Math.PI * 2);
+    context.fill();
+  }
+}
+
+function drawNurseryBackground(context: CanvasRenderingContext2D) {
+  const sky = context.createLinearGradient(0, 0, 0, STRIP_HEIGHT);
+  sky.addColorStop(0, '#dceeff');
+  sky.addColorStop(0.55, '#b4d7f7');
+  sky.addColorStop(1, '#8fc0ee');
+  context.fillStyle = sky;
+  context.fillRect(0, 0, STRIP_WIDTH, STRIP_HEIGHT);
+
+  context.fillStyle = 'rgba(255, 255, 255, .35)';
+  for (let y = 30, row = 0; y < STRIP_HEIGHT; y += 70, row += 1) {
+    for (let x = row % 2 ? 65 : 30; x < STRIP_WIDTH; x += 70) {
+      context.beginPath();
+      context.arc(x, y, 5, 0, Math.PI * 2);
+      context.fill();
+    }
+  }
+  for (const [x, y, scale] of [[170, 330, 1.1], [940, 280, 0.9], [900, 1250, 1], [110, 1320, 0.8], [560, 1880, 1.4], [980, 1860, 0.9]] as const) {
+    drawCloud(context, x, y, scale);
+  }
+  const random = createRandom(714);
+  for (let index = 0; index < 34; index += 1) {
+    drawStar(context, random() * STRIP_WIDTH, random() * STRIP_HEIGHT, 6 + random() * 10, index % 3 ? 'rgba(242, 207, 107, .85)' : 'rgba(255, 255, 255, .9)');
+  }
+}
+
+function drawArt(context: CanvasRenderingContext2D, art: HTMLImageElement, x: number, y: number, width: number, rotation = 0) {
+  const height = width * (art.naturalHeight / art.naturalWidth);
+  context.save();
+  context.translate(x + width / 2, y + height / 2);
+  context.rotate(rotation);
+  context.shadowColor = 'rgba(29, 63, 115, .25)';
+  context.shadowBlur = 18;
+  context.shadowOffsetY = 8;
+  context.drawImage(art, -width / 2, -height / 2, width, height);
+  context.restore();
+}
+
+function drawTitle(context: CanvasRenderingContext2D, title: string) {
+  let size = 160;
+  context.font = `${size}px "Great Vibes", cursive`;
+  while (context.measureText(title).width > 940 && size > 60) {
+    size -= 4;
+    context.font = `${size}px "Great Vibes", cursive`;
+  }
+  context.save();
+  context.textAlign = 'center';
+  context.textBaseline = 'alphabetic';
+  context.shadowColor = 'rgba(255, 255, 255, .95)';
+  context.shadowBlur = 22;
+  context.fillStyle = '#1d3f73';
+  context.fillText(title, STRIP_WIDTH / 2, 200);
+  context.restore();
+  const half = context.measureText(title).width / 2;
+  drawStar(context, STRIP_WIDTH / 2 - half - 26, 120, 14, '#f2cf6b');
+  drawStar(context, STRIP_WIDTH / 2 + half + 26, 120, 14, '#f2cf6b');
+}
+
+function drawPolaroid(context: CanvasRenderingContext2D, bitmap: ImageBitmap, { x, y, size, rotation }: (typeof POLAROIDS)[number]) {
+  const width = size + 52;
+  const height = size + 150;
+  context.save();
+  context.translate(x, y);
+  context.rotate(rotation);
+  context.save();
+  context.shadowColor = 'rgba(0, 0, 0, .55)';
+  context.shadowBlur = 34;
+  context.shadowOffsetY = 16;
+  const paper = context.createLinearGradient(0, -height / 2, 0, height / 2);
+  paper.addColorStop(0, '#fdfcf8');
+  paper.addColorStop(1, '#ece8de');
+  context.fillStyle = paper;
+  context.fillRect(-width / 2, -height / 2, width, height);
+  context.restore();
+  const photoX = -size / 2;
+  const photoY = -height / 2 + 26;
+  drawCoverPhoto(context, bitmap, photoX, photoY, size, size);
+  context.strokeStyle = 'rgba(0, 0, 0, .14)';
+  context.lineWidth = 2;
+  context.strokeRect(photoX, photoY, size, size);
+  context.restore();
+}
+
+function drawTape(context: CanvasRenderingContext2D, x: number, y: number, width: number, rotation: number) {
+  const height = 54;
+  context.save();
+  context.translate(x, y);
+  context.rotate(rotation);
+  context.beginPath();
+  context.moveTo(-width / 2, -height / 2);
+  context.lineTo(width / 2, -height / 2);
+  for (let step = 0; step <= 6; step += 1) context.lineTo(width / 2 + (step % 2 ? -7 : 0), -height / 2 + (height / 6) * step);
+  context.lineTo(-width / 2, height / 2);
+  for (let step = 6; step >= 0; step -= 1) context.lineTo(-width / 2 + (step % 2 ? 7 : 0), -height / 2 + (height / 6) * step);
+  context.closePath();
+  context.fillStyle = 'rgba(222, 222, 214, .78)';
+  context.shadowColor = 'rgba(0, 0, 0, .2)';
+  context.shadowBlur = 6;
+  context.fill();
+  context.shadowColor = 'transparent';
+  context.strokeStyle = 'rgba(255, 255, 255, .3)';
+  context.lineWidth = 2;
+  for (let line = -width / 2 + 18; line < width / 2 - 10; line += 22) {
+    context.beginPath();
+    context.moveTo(line, -height / 2 + 6);
+    context.lineTo(line + 10, height / 2 - 6);
+    context.stroke();
+  }
+  context.restore();
+}
+
+function drawHeart(context: CanvasRenderingContext2D, x: number, y: number, size: number, rotation: number) {
+  context.save();
+  context.translate(x, y);
+  context.rotate(rotation);
+  context.beginPath();
+  context.moveTo(0, size * 0.35);
+  context.bezierCurveTo(-size * 1.1, -size * 0.35, -size * 0.45, -size * 1.05, 0, -size * 0.45);
+  context.bezierCurveTo(size * 0.45, -size * 1.05, size * 1.1, -size * 0.35, 0, size * 0.35);
+  context.fillStyle = 'rgba(236, 236, 232, .82)';
+  context.shadowColor = 'rgba(255, 255, 255, .35)';
+  context.shadowBlur = 10;
+  context.fill();
+  context.restore();
+}
+
+function drawDoodles(context: CanvasRenderingContext2D) {
+  drawHeart(context, 250, 400, 58, -0.25);
+  drawHeart(context, 305, 520, 30, 0.2);
+  drawHeart(context, 920, 1060, 36, 0.3);
+  context.save();
+  context.strokeStyle = 'rgba(240, 240, 236, .85)';
+  context.lineWidth = 5;
+  context.lineCap = 'round';
+  for (const [x, y, size] of [[140, 620, 26], [990, 1000, 18], [190, 1640, 30]] as const) {
+    context.beginPath();
+    for (let arm = 0; arm < 4; arm += 1) {
+      const angle = (Math.PI / 4) * arm;
+      context.moveTo(x - Math.cos(angle) * size, y - Math.sin(angle) * size);
+      context.lineTo(x + Math.cos(angle) * size, y + Math.sin(angle) * size);
+    }
+    context.stroke();
+  }
   context.restore();
 }
 
@@ -331,9 +335,14 @@ export async function capturePhoto(video: HTMLVideoElement): Promise<Blob> {
   });
 }
 
-export async function createStrip(photos: CapturedPhoto[]): Promise<Blob> {
+export async function createStrip(photos: CapturedPhoto[], style: CollageStyle): Promise<Blob> {
   if (photos.length !== 3) throw new Error('Maak eerst drie foto\'s.');
-  const bitmaps = await Promise.all(photos.map((photo) => createImageBitmap(photo.blob)));
+  const artUrls = style.kind === 'photo' ? [style.background] : [style.horse, ...style.bears];
+  const [art, bitmaps] = await Promise.all([
+    Promise.all(artUrls.map(loadImage)),
+    Promise.all(photos.map((photo) => createImageBitmap(photo.blob))),
+    style.kind === 'nursery' ? document.fonts.load('160px "Great Vibes"').catch(() => []) : null,
+  ]);
   const canvas = document.createElement('canvas');
   canvas.width = STRIP_WIDTH;
   canvas.height = STRIP_HEIGHT;
@@ -343,23 +352,24 @@ export async function createStrip(photos: CapturedPhoto[]): Promise<Blob> {
     throw new Error('De fotostrip kon niet worden gemaakt.');
   }
 
-  context.fillStyle = '#fff3de';
-  context.fillRect(0, 0, STRIP_WIDTH, STRIP_HEIGHT);
-  drawChristmasFrame(context);
-  drawPhotoCard(context, bitmaps[0], 900, 960, 1370, 1190, 'MOMENT 01 · KERST', 0, true);
-  drawPhotoCard(context, bitmaps[1], 505, 1950, 640, 760, 'MOMENT 02', -0.045);
-  drawPhotoCard(context, bitmaps[2], 1295, 1950, 640, 760, 'MOMENT 03', 0.045);
+  if (style.kind === 'photo') {
+    drawPhotoBackground(context, art[0]);
+    drawShimmer(context);
+    drawSnow(context);
+    drawDoodles(context);
+  } else {
+    const [horse, leftBear, rightBear] = art;
+    drawNurseryBackground(context);
+    drawTitle(context, style.title);
+    drawArt(context, rightBear, 110, 390, 270, -0.06);
+    drawArt(context, horse, 690, 905, 310, 0.04);
+    drawArt(context, leftBear, 30, 1490, 300, 0.05);
+    drawArt(context, horse, 944, 1690, 124, -0.1);
+  }
+  bitmaps.forEach((bitmap, index) => drawPolaroid(context, bitmap, POLAROIDS[index]));
+  drawTape(context, 716, 294, 210, 0.03);
+  drawTape(context, 912, 1168, 150, 0.72);
   bitmaps.forEach((bitmap) => bitmap.close());
-
-  await document.fonts.ready;
-  context.textAlign = 'center';
-  context.textBaseline = 'middle';
-  context.fillStyle = '#fff2d6';
-  context.font = 'italic 700 54px Fraunces, Georgia, serif';
-  context.fillText('KERSTMOMENTEN', STRIP_WIDTH / 2, 2485);
-  context.fillStyle = '#f3dfae';
-  context.font = '600 27px Fraunces, Georgia, serif';
-  context.fillText('Een kerst om te bewaren', STRIP_WIDTH / 2, 2562);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {

@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   publish:
+    if: github.repository_owner == 'AFASGroep'
     runs-on: ubuntu-latest
     steps:
       - name: Check out source

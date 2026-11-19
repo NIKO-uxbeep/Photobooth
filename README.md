@@ -1,6 +1,10 @@
 # Polaroid App
 
-Een mobiele webapp die opent met een interactieve 3D-kerstboom. Tik op de boom of op de startknop om de live camera te openen; daarna telt de app vier seconden af en maakt automatisch drie foto's achter elkaar. Vervolgens verschijnt een lokale PNG-kerstkaart in 4x6-formaat, met een grote foto en twee kleinere Polaroids. De app heeft geen database, upload-endpoint of account. Opnames blijven alleen in het geheugen van de geopende pagina en verdwijnen wanneer die wordt gesloten of ververst.
+Een mobiele fotobooth met wisselbare thema's. Tik op **Start** om de camera te openen; de app telt af voor elk van de drie automatische opnames. Daarna verschijnt op een apart scherm een downloadbare PNG-collage in Instagram Story-formaat (1080 x 1920), met drie foto's als speelse, schuin geplaatste polaroids met tape en krijtdoodles op een echte foto van een kerstboom met rode en gouden kerstballen, met glinstering en sneeuw. Met **Opnieuw** wis je het resultaat en ga je terug naar het startscherm. Er is geen database, upload-endpoint of account.
+
+## Thema's
+
+De app heeft een **Kerst**- en een **Babyshower (jongen)**-thema, elk met eigen kleuren, teksten, decoratie, collage-achtergrond en muziek. Wisselen gaat via een verborgen menu: houd op de startpagina de tekst "Foto's blijven op dit apparaat" onderaan ongeveer 1,5 seconde ingedrukt. De keuze wordt op het apparaat onthouden.
 
 ## Lokaal starten
 
@@ -25,3 +29,7 @@ De container serveert de statische client via poort 8080. De uiteindelijke omgev
 ## Privacy
 
 De browser vraagt alleen na een gebruikersactie toegang tot de camera. Foto's worden in de browser verwerkt en niet naar een server verstuurd. De download- of deelactie wordt door de gebruiker gestart; de browser of telefoon bepaalt waar het bestand terechtkomt.
+
+## Beeldbronnen
+
+De kerstcollage gebruikt een foto van een [kerstboom met rode en gouden kerstballen](https://unsplash.com/photos/a-christmas-tree-with-red-and-gold-ornaments-EoDkLL6SKkE) van Unsplash ([licentie](https://unsplash.com/license)), lokaal meegeleverd in de app. De babyshowercollage wordt volledig in de app getekend.
