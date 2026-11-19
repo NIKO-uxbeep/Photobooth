@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { ArrowDownToLine, RotateCcw, Share2, X } from 'lucide-react';
 import { capturePhoto, createStrip, type CapturedPhoto } from './lib/createStrip';
 import ChristmasMusic from './ChristmasMusic';
+import InstallTip from './InstallTip';
 import MaatjesScene, { Marquee } from './MaatjesScene';
 import { readThemeId, saveThemeId, THEMES, type ThemeId } from './themes';
 
@@ -273,6 +274,7 @@ export default function App() {
       {mode === 'ready' && (
         <>
           <Marquee items={theme.marquee} />
+          <InstallTip />
           <p
             className="booth-privacy"
             onPointerDown={startLongPress}
